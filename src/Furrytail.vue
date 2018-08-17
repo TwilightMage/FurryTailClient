@@ -17,7 +17,7 @@
       </div>
       <div class="search">
         <div class="search_body">
-          <input class="search_input" type="text" name="search_pattern" v-on:submit="GoSearch" placeholder="Метки для поиска..."/>
+          <input class="search_input" type="text" name="search_pattern" ref="search_pattern" v-on:submit="GoSearch" placeholder="Метки для поиска..."/>
           <div class="search_go">
             <div>
               <div v-on:click="GoSearch"></div>
@@ -32,12 +32,13 @@
 </template>
 
 <script>
-// var axios = import('axios')
+import axios from 'axios'
 export default {
   name: 'Furrytail',
   methods: {
     GoSearch: function () {
-      // axios.post()
+      var tags = this.$refs.search_pattern.value.split(' ')
+      axios.post('search', {tags: tags}, null)
     }
   }
 }

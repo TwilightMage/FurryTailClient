@@ -27,6 +27,8 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
 
     'no-unused-vars': 'warn',
-    'no-trailing-spaces': 'off'
+    'no-trailing-spaces': 'off',
+    'no-multiple-empty-lines': 'off',
+    'vue/no-async-in-computed-properties': 'off'
   }
 }

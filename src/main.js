@@ -3,17 +3,18 @@
 import Vue from 'vue'
 import Furrytail from './Furrytail'
 import router from './router'
+import separator from './components/separator'
 
 import BootstrapVue from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faEyeSlash, faEye } from '@fortawesome/free-solid-svg-icons'
+import { faEyeSlash, faEye, faImages, faSignInAlt, faSignOutAlt, faMusic, faVideo } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+library.add([faEyeSlash, faEye, faImages, faSignInAlt, faSignOutAlt, faMusic, faVideo])
 
-library.add(faEyeSlash)
-library.add(faEye)
+Vue.component('separator', separator)
 
 Vue.use(BootstrapVue)
 

@@ -14,6 +14,32 @@ module.exports = {
   logerr (err) {
     console.error('caught error: ', err)
   },
+  cookie: {
+    Get (name, defaultValue) {
+      var results = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)')
+
+      if (results) return decodeURIComponent(results[2])
+      else return defaultValue
+    },
+    Set (name, value, lifetime, path, domain, secure) {
+      var cookieString = name + '=' + encodeURIComponent(value)
+
+      var expires = new Date()
+      if (lifetime) expires.setSeconds(expires.getSeconds() + lifetime)
+      else expires.setSeconds(expires.getSeconds() + 60 * 60 * 24 * 365)
+
+      cookieString += '; expires=' + expires.toGMTString()
+      if (path) cookieString += '; path=' + encodeURIComponent(path)
+      if (domain) cookieString += '; domain=' + encodeURIComponent(domain)
+      if (secure) cookieString += '; secure'
+
+      document.cookie = cookieString
+    },
+    Remove (name) {
+      var expires = new Date()
+      document.cookie = name += '=; expires=' + expires.toGMTString()
+    }
+  },
   sqlconf: {
     host: 'localhost',
     user: 'furry',
@@ -24,7 +50,7 @@ module.exports = {
   regex: {
     email: /^[A-Za-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/,
     password: /^.{5,25}$/,
-    nickname: /^.{3,25}$/
+    name: /^.{3,25}$/
   },
   errors: {
     signup: {

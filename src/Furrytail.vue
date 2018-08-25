@@ -1,61 +1,58 @@
 <template>
   <div class="furrytail">
     <div class="header">
-      <div class="profile" :logiedIn="logiedIn">
-        <div class="profile_header">
-          <img src="" class="profile_photo"/>
-          <div class="profile_name">Аноним</div>
-        </div>
-        <ul v-if="logiedIn" class="profile_actions">
-          <li>Профиль</li>
-          <li>Настройки</li>
-          <li>Помощь</li>
-          <separator/>
-          <li>Выход</li>
-        </ul>
-        <div v-else class="profile_offline">
-          <!--div class="auth_login">
-            <b-form-input block type="email" placeholder="Почта" name="login"></b-form-input>
-            <b-form-input block type="password" placeholder="Пароль" name="password"></b-form-input>
-            <b-form-checkbox block type="checkbox">Оставаться в сети</b-form-checkbox>
-            <b-button block size="sm" variant="primary">Войти</b-button>
-          </div>
-          <div class="auth_register">
-            <b-form-input block v-b-tooltip.html.right v-on:input="auth_register_CheckEmail" :title="auth.register.email_error" :state="auth.register.email_state" type="email" v-model="auth.register.email" placeholder="Почта" name="login"></b-form-input>
-            <b-form-input block v-b-tooltip.html.right v-on:input="auth_register_CheckPassword" :title="auth.register.password_error" :state="auth.register.password_state" type="password" v-model="auth.register.password" placeholder="Пароль" name="password"></b-form-input>
-            <b-form-input block v-b-tooltip.html.right v-on:input="auth_register_CheckRepassword" :title="auth.register.repassword_error" :state="auth.register.repassword_state" type="password" v-model="auth.register.repassword" placeholder="Повторите пароль" name="repeat_password"></b-form-input>
-            <b-form-input block v-b-tooltip.html.right v-on:input="auth_register_CheckNickname" :title="auth.register.nickname_error" :state="auth.register.nickname_state" type="text" v-model="auth.register.nickname" placeholder="Никнейм" name="nickname"></b-form-input>
-            <b-form-checkbox block type="checkbox">Я принимаю <b-link v-b-modal.rules>правила сообщества</b-link></b-form-checkbox>
-            <b-button block size="sm" variant="primary" v-on:click="auth_register_Go">Зарегистрироваться</b-button>
-          </div>
-          <div class="auth_loading">
-
-          </div>
-          <div class="auth_types">
-            <input type="button" class="login_tab" value="Вход" v-on:click="authType = 'login'"/>
-            <input type="button" class="register_tab" value="Регистрация" v-on:click="authType = 'register'"/>
-          </div-->
-          <b-button block size="sm" variant="primary">Войти</b-button>
-          <b-button block size="sm" variant="primary">Зарегистрироваться</b-button>
-        </div>
-      </div>
+      <div class="logo" @click="ToggleMenu"></div>
       <div class="search">
         <div class="search_body">
           <input class="search_input" type="text" name="search_pattern" ref="search_pattern" v-on:submit="GoSearch" placeholder="Метки для поиска..."/>
           <div class="search_go">
             <div>
-              <button v-on:click="GoSearch"></button>
+              <button @click="GoSearch"></button>
             </div>
           </div>
         </div>
       </div>
       <div class="flex_filler"></div>
-      <div class="logo"></div>
     </div>
-    <div class="panel">
+    <div class="menu noselect" :opened="showMenu">
+      <div class="item profile">
+        <img src="./assets/pictures/logo.png" class="avatar"/>
+        <div class="nickname">{{user.name}}</div>
+      </div>
+      <div v-if="logiedIn">
+        <div class="item">
+          <div><font-awesome-icon icon="images" /></div>
+          <div>Мои картинки</div>
+        </div>
+        <div class="item">
+          <div><font-awesome-icon icon="music" /></div>
+          <div>Моя музыка</div>
+        </div>
+        <div class="item">
+          <div><font-awesome-icon icon="video" /></div>
+          <div>Мои видео</div>
+        </div>
+        <div class="item" @click="SignOut">
+          <div><font-awesome-icon icon="sign-out-alt" /></div>
+          <div>Выход</div>
+        </div>
+      </div>
+      <div v-else>
+        <div class="signin">
+          <b-form-input size="sm" placeholder="Имя" type="text" v-model="login.login"></b-form-input>
+          <b-form-input size="sm" placeholder="Пароль" type="password" v-model="login.password"></b-form-input>
+          <b-button variant="primary" size="sm" block @click="SignIn"><font-awesome-icon icon="sign-in-alt"/> Войти</b-button>
+        </div>
+      </div>
+      <div class="item footer">
+        <div class="powered-by">Powered by:</div>
+        <img src="./assets/pictures/logo.png" title="Vue.js"/>
+      </div>
+    </div>
+    <div class="panel holder">
       <router-view></router-view>
     </div>
-    <div class="modals">
+    <div class="modals holder">
       <b-modal hide-footer size="lg" id="rules" title="Правила сообщества">
         <p>Очень много текста.</p>
       </b-modal>
@@ -65,68 +62,64 @@
 
 <script>
 import axios from 'axios'
+import fur from './fur'
 
 export default {
   name: 'Furrytail',
   methods: {
-    GoSearch: function () {
+    ToggleMenu () {
+      this.showMenu = !this.showMenu
+    },
+    GoSearch () {
       axios.post('api/search', {tags: this.$refs.search_pattern.value.split(' ')})
     },
-    auth_register_CheckEmail: function () {
-
-    },
-    auth_register_CheckPassword: function () {
-      this.auth_register_CheckRepassword()
-    },
-    auth_register_CheckRepassword: function () {
-      if (this.auth.register.password === this.auth.register.repassword) {
-        this.auth.register.repassword_state = '"true"'
-        this.auth.register.repassword_error = ''
-      } else {
-        this.auth.register.repassword_state = '"false"'
-        this.auth.register.repassword_error = 'Пароли не совпадают'
-      }
-    },
-    auth_register_CheckNickname: function () {
-
-    },
-    auth_register_Go: function () {
-      if (this.auth.register.password === this.auth.register.repassword) {
-        var data = {
-          email: this.auth.register.email,
-          password: this.auth.register.password,
-          nickname: this.auth.register.nickname
+    SignIn () {
+      var vue = this
+      axios.post('api/signin', {login: this.login.login, password: this.login.password}).then(function (response) {
+        if (response.data.success) {
+          vue.logiedIn = true
+          vue.user.name = response.data.data.name
+          vue.user.id = response.data.data.id
+          fur.cookie.Set('token', response.data.data.token, 60 * 30)
         }
-        axios.post('/api/signup', data).then(function (responce) {
-          console.debug(responce)
-        }).catch(function (error) {
-          console.log(error)
-        })
-      }
+      })
+    },
+    SignOut () {
+      this.nickname = 'Аноним'
+      this.logiedIn = false
     }
   },
   data () {
     return {
-      logiedIn: false
+      login: {
+        login: '',
+        password: ''
+      },
+      user: {
+        name: 'Аноним',
+        token: null
+      },
+      logiedIn: false,
+      showMenu: false
     }
   }
 }
 </script>
 
 <style>
+  :root {
+    --color-main: #FF4900;
+    --color-secondary: #3F3F37;
+    --color-additional: #D6D6B1;
+    --color-D: #494331;
+    --color-E: #878472;
+  }
   body {
     margin: 0;
     font-family: 'Avenir', Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
-  separator {
-    border: 1px solid;
-    border-top-color: rgba(0,0,0,0.11);
-    border-right-color: rgba(255,255,255,0.11);
-    border-bottom-color: rgba(255,255,255,0.11);
-    border-left-color: rgba(0,0,0,0.11);
-    flex-grow: 1;
+    background: var(--color-E);
   }
   ul {
     display: flex;
@@ -137,82 +130,33 @@ export default {
   li {
     flex-grow: 1;
   }
+  .noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
+  }
+  .holder {
+    pointer-events: none;
+  }
+  .holder > * {
+    pointer-events: auto;
+  }
   .header {
     z-index: 1000;
     color: whitesmoke;
     position: absolute;
     left: 0;
     width: 100%;
+    height: 40px;
     display: flex;
     flex-direction: row;
     padding: 0 50px;
-    background: #fe4800;
+    background: var(--color-main);
     box-sizing: border-box;
-  }
-  .profile {
-    cursor: default;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    min-width: 310px;
-  }
-  .profile[logiedIn] {
-    min-width: 200px;
-  }
-  .profile_header {
-    padding: 5px;
-    display: flex;
-    flex-direction: row;
-  }
-  .profile:hover {
-    background: #cb3a00;
-  }
-  .profile_photo {
-    background: white;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: block;
-  }
-  .profile_name {
-    font-weight: bold;
-    margin-left: 5px;
-    line-height: 30px;
-  }
-  .profile:hover .profile_name {
-    color: white;
-  }
-  .profile_actions {
-    padding-bottom: 5px;
-  }
-  .profile_actions, .profile_offline {
-    background: #cb3a00;
-    position: absolute;
-    top: 40px;
-    display: none;
-    width: 100%;
-  }
-  .profile:hover .profile_actions, .profile:hover .profile_offline {
-    display: block;
-  }
-  .profile_offline {
-    padding: 5px;
-  }
-  .profile_actions > li {
-    cursor: pointer;
-  }
-  .profile_actions > li:hover {
-    background: #ff7943;
-    color: white;
-  }
-  .profile_actions > li::before {
-    width: 20px;
-    height: 20px;
-    display: inline-block;
-    background: white;
-    vertical-align: middle;
-    margin-right: 10px;
-    content: ' ';
+    border-bottom: 1px solid rgba(0,0,0,0.15)
   }
   .search {
     width: 400px;
@@ -221,14 +165,10 @@ export default {
   }
   .search_body {
     border-radius: 20px;
-    height: 30px;
-    border: 2px solid;
-    background: #cb3a00;
+    height: 100%;
+    border: 1px solid rgba(0,0,0,0.10);
+    background: rgba(0,0,0,0.3);
     overflow: hidden;
-    border-top-color: rgba(0,0,0,0.11);
-    border-right-color: rgba(255,255,255,0.11);
-    border-bottom-color: rgba(255,255,255,0.11);
-    border-left-color: rgba(0,0,0,0.11);
     display: flex;
     flex-direction: row;
   }
@@ -264,9 +204,84 @@ export default {
     flex-grow: 1;
   }
   .logo {
-    width: 150px;
+    width: 200px;
     margin: 5px 0;
     background: white;
+    cursor: pointer;
+  }
+  .menu {
+    position: absolute;
+    left: -250px;
+    top: 0;
+    height: 100%;
+    width: 250px;
+    background: var(--color-secondary);
+    border-right: 1px solid rgba(0,0,0,0.15);
+    transition: left ease 0.15s;
+    padding-top: 40px;
+    color: whitesmoke;
+  }
+  .menu .item {
+    padding: 5px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+  }
+  .menu .item:not(.footer):hover {
+    background: rgba(0,0,0,0.15);
+  }
+  .menu .item:not(.footer):active {
+    background: rgba(0,0,0,0.25);
+  }
+  .menu .item:not(.footer) {
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+  }
+  .menu .item:not(.profile) {
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .menu .item:not(.footer) > div:first-child {
+    width: 50px;
+    line-height: 25px;
+    text-align: center;
+  }
+  .menu .item:not(.footer) > div:last-child {
+    flex-grow: 1;
+    line-height: 25px;
+    padding-left: 10px;
+  }
+  .menu .profile .avatar {
+    height: 50px;
+    border-radius: 50%;
+    box-shadow: 0 0 10px black;
+    background: rgba(255,255,255,0.1);
+  }
+  .menu .profile .nickname {
+    line-height: 50px !important;
+    font-weight: bold;
+    text-shadow: 0 0 10px black;
+  }
+  .menu .signin {
+    padding: 0 5px 5px 5px;
+  }
+  .menu .signin > * {
+    margin-top: 5px;
+  }
+  .menu[opened] {
+    left: 0;
+  }
+  .menu .footer {
+    cursor: default;
+    display: block;
+  }
+  .menu .footer > img {
+    display: block;
+    float: left;
+    height: 30px;
+    cursor: pointer;
+  }
+  .menu .powered-by {
+    font-size: 7pt;
+    font-weight: bold;
   }
   .panel, .modals {
     position: absolute;
@@ -281,6 +296,7 @@ export default {
     box-shadow: 0 0 10px black;
     min-height: 100%;
     padding: 10px;
+    background: white;
   }
   .panel > div[wide] {
     width: 100%;

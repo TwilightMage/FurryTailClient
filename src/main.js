@@ -10,9 +10,9 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faEyeSlash, faEye, faImages, faSignInAlt, faSignOutAlt, faMusic, faVideo } from '@fortawesome/free-solid-svg-icons'
+import { faEyeSlash, faEye, faImages, faSignInAlt, faSignOutAlt, faMusic, faVideo, faUser, faBug, faNewspaper, faCog, faComment } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-library.add([faEyeSlash, faEye, faImages, faSignInAlt, faSignOutAlt, faMusic, faVideo])
+library.add([faEyeSlash, faEye, faImages, faSignInAlt, faSignOutAlt, faMusic, faVideo, faUser, faBug, faNewspaper, faCog, faComment])
 
 Vue.component('separator', separator)
 

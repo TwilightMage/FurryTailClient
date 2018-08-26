@@ -1,9 +1,9 @@
 <template>
-    <div class="separator">
-      <div></div>
-      <div v-if="title != ''">{{title}}</div>
-      <div></div>
-    </div>
+  <div class="separator">
+    <div></div>
+    <div v-if="title != ''">{{title}}</div>
+    <div></div>
+  </div>
 </template>
 
 <script>

@@ -1,3 +1,5 @@
+const crypto = require('crypto')
+
 module.exports = {
   errcheck: function (err) {
     if (err) throw err
@@ -20,6 +22,18 @@ module.exports = {
 
       if (results) return decodeURIComponent(results[2])
       else return defaultValue
+    },
+    Extract (name) {
+      var results = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)')
+
+      console.debug(results)
+      if (results) {
+        return {
+          name: name
+        }
+      } else {
+        return null
+      }
     },
     Set (name, value, lifetime, path, domain, secure) {
       var cookieString = name + '=' + encodeURIComponent(value)
@@ -60,6 +74,20 @@ module.exports = {
       emailTaken: 3,
       nicknameTaken: 4,
       communityTerms: 5
+    }
+  },
+  crypt: {
+    en (text, key) {
+      var cipher = crypto.createCipher('aes-256-ctr', key)
+      var crypted = cipher.update(text, 'utf8', 'hex')
+      crypted += cipher.final('hex')
+      return crypted
+    },
+    de (crypted, key) {
+      var decipher = crypto.createDecipher('aes-256-ctr', key)
+      var dec = decipher.update(crypted, 'hex', 'utf8')
+      dec += decipher.final('utf8')
+      return dec
     }
   },
   responce: {

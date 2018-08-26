@@ -15,11 +15,23 @@
       <div class="flex_filler"></div>
     </div>
     <div class="menu noselect" :opened="showMenu">
-      <div class="item profile">
-        <img src="./assets/pictures/logo.png" class="avatar"/>
-        <div class="nickname">{{user.name}}</div>
-      </div>
       <div v-if="logiedIn">
+        <div class="item profile" @click="OpenProfile">
+          <img src="./assets/pictures/logo.png" class="avatar"/>
+          <div class="nickname">{{user.name}}</div>
+        </div>
+        <div class="item">
+          <div><font-awesome-icon icon="newspaper" /></div>
+          <div>Мои новости</div>
+        </div>
+        <div class="item">
+          <div><font-awesome-icon icon="comment" /></div>
+          <div>Мои сообщения</div>
+        </div>
+        <div class="item">
+          <div><font-awesome-icon icon="user" /></div>
+          <div>Мои друзья</div>
+        </div>
         <div class="item">
           <div><font-awesome-icon icon="images" /></div>
           <div>Мои картинки</div>
@@ -32,6 +44,14 @@
           <div><font-awesome-icon icon="video" /></div>
           <div>Мои видео</div>
         </div>
+        <div class="item">
+          <div><font-awesome-icon icon="cog" /></div>
+          <div>Мои настройки</div>
+        </div>
+        <div class="item">
+          <div><font-awesome-icon icon="bug" /></div>
+          <div>Сообщить об ошибке</div>
+        </div>
         <div class="item" @click="SignOut">
           <div><font-awesome-icon icon="sign-out-alt" /></div>
           <div>Выход</div>
@@ -39,9 +59,12 @@
       </div>
       <div v-else>
         <div class="signin">
-          <b-form-input size="sm" placeholder="Имя" type="text" v-model="login.login"></b-form-input>
-          <b-form-input size="sm" placeholder="Пароль" type="password" v-model="login.password"></b-form-input>
-          <b-button variant="primary" size="sm" block @click="SignIn"><font-awesome-icon icon="sign-in-alt"/> Войти</b-button>
+          <b-form-input size="sm" placeholder="Имя или почта" type="text" :state="LoginState" v-model="login.login"></b-form-input>
+          <b-form-input size="sm" placeholder="Пароль" type="password" :state="PasswordState" v-model="login.password"></b-form-input>
+          <b-button variant="primary" size="sm" block :disabled="SignupInvalid" @click="SignIn"><font-awesome-icon icon="sign-in-alt"/> Войти</b-button>
+          <div class="orregister">
+            или <router-link to="/signup">зарегистрироваться</router-link>
+          </div>
         </div>
       </div>
       <div class="item footer">
@@ -66,6 +89,19 @@ import fur from './fur'
 
 export default {
   name: 'Furrytail',
+  computed: {
+    LoginState () {
+      if (this.login.login === '') return null
+      else return fur.regex.name.test(this.login.login)
+    },
+    PasswordState () {
+      if (this.login.password === '') return null
+      else return fur.regex.password.test(this.login.password)
+    },
+    SignupInvalid () {
+      return !(this.LoginState && this.PasswordState)
+    }
+  },
   methods: {
     ToggleMenu () {
       this.showMenu = !this.showMenu
@@ -73,20 +109,41 @@ export default {
     GoSearch () {
       axios.post('api/search', {tags: this.$refs.search_pattern.value.split(' ')})
     },
+    OpenProfile () {
+      this.$router.push(`/user/${this.user.id}`)
+    },
     SignIn () {
+      this.SignInWith(this.login.login, this.login.password)
+    },
+    SignInWith (login, password) {
       var vue = this
-      axios.post('api/signin', {login: this.login.login, password: this.login.password}).then(function (response) {
+      axios.post('api/signin', {login: login, password: password}).then(function (response) {
         if (response.data.success) {
           vue.logiedIn = true
+          vue.user.token = response.data.data.token
           vue.user.name = response.data.data.name
           vue.user.id = response.data.data.id
           fur.cookie.Set('token', response.data.data.token, 60 * 30)
+          fur.cookie.Set('login', fur.crypt.en(login, 'super-secret-dragon'))
+          fur.cookie.Set('password', fur.crypt.en(password, 'super-secret-dragon'))
         }
       })
     },
     SignOut () {
-      this.nickname = 'Аноним'
       this.logiedIn = false
+      fur.cookie.Remove('token')
+      fur.cookie.Remove('login')
+      fur.cookie.Remove('password')
+    }
+  },
+  created () {
+    this.token = fur.cookie.Get('token', null)
+    var login = fur.cookie.Get('login', null)
+    var password = fur.cookie.Get('password', null)
+    if (login && password) {
+      login = fur.crypt.de(login, 'super-secret-dragon')
+      password = fur.crypt.de(password, 'super-secret-dragon')
+      this.SignInWith(login, password)
     }
   },
   data () {
@@ -97,6 +154,7 @@ export default {
       },
       user: {
         name: 'Аноним',
+        id: 0,
         token: null
       },
       logiedIn: false,
@@ -262,9 +320,13 @@ export default {
   }
   .menu .signin {
     padding: 0 5px 5px 5px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
   }
   .menu .signin > * {
     margin-top: 5px;
+  }
+  .menu .orregister {
+    text-align: center;
   }
   .menu[opened] {
     left: 0;

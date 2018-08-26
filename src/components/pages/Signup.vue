@@ -1,12 +1,12 @@
 <template>
-    <div>
+    <div class="pan">
       <div v-if="success">
         Регистрация почти завершена. На указанный email было отправлено письмо с дальнейшими инструкциями.
       </div>
       <div v-else>
         <b-form @submit="Submit">
           <b-form-group description="Ваш адрес электронной почты." label="Email" :invalid-feedback="EmailInvalid" :valid-feedback="EmailValid" :state="EmailState">
-            <b-form-input required type="email" :state="EmailState" v-model.trim="email" @change="EmailInput" placeholder="Введите Email"></b-form-input>
+            <b-form-input required type="email" :state="EmailState" v-model.trim="email" @change="EmailIChange" @input="pendingEmail = true" placeholder="Введите Email"></b-form-input>
           </b-form-group>
           <b-form-group description="Придумайте уникальный пароль." label="Пароль" :invalid-feedback="PasswordInvalid" :valid-feedback="PasswordValid" :state="PasswordState">
             <b-input-group>
@@ -31,7 +31,7 @@
             <b-form-input required type="password" :state="RepasswordState" v-model.trim="repassword" placeholder="Повторите пароль"></b-form-input>
           </b-form-group>
           <b-form-group label="Имя" description="Ваше имя на сайте. Оно должно быть уникальным." :invalid-feedback="NameInvalid" :valid-feedback="NameValid" :state="NameState">
-            <b-form-input required type="text" :state="NameState" v-model.trim="name" @change="NameInput" placeholder="Введите имя"></b-form-input>
+            <b-form-input required type="text" :state="NameState" v-model.trim="name" @change="NameChange" @input="pendingName = true" placeholder="Введите имя"></b-form-input>
           </b-form-group>
           <b-form-checkbox v-model="terms" required>Я принимаю <b-link>правила сообщества</b-link></b-form-checkbox>
           <!--div class="g-recaptcha" data-sitekey="6Lc0vGsUAAAAAMfdyq0kaADtwMS3ANddoQai0MvP"></div-->
@@ -58,7 +58,7 @@ export default {
     TogglePassword () {
       this.showPassword = !this.showPassword
     },
-    EmailInput () {
+    EmailIChange () {
       if (fur.regex.email.test(this.email)) {
         var vue = this
         if (this.emailCheckCancelToken) this.emailCheckCancelToken()
@@ -68,10 +68,11 @@ export default {
           })
         }).then(function (response) {
           vue.emailTaken = response.data.success
+          vue.pendingEmail = false
         })
       }
     },
-    NameInput () {
+    NameChange () {
       if (fur.regex.name.test(this.name)) {
         var vue = this
         if (this.nameCheckCancelToken) this.nameCheckCancelToken()
@@ -81,6 +82,7 @@ export default {
           })
         }).then(function (response) {
           vue.nameTaken = response.data.success
+          vue.pendingName = false
         })
       }
     }
@@ -94,9 +96,11 @@ export default {
       return 'Email введен корректно'
     },
     EmailState () {
-      if (this.emailTaken) return false
-      else if (this.email === '') return null
-      else return fur.regex.email.test(this.email)
+      if (this.email === '') return null
+      else if (!fur.regex.email.test(this.email)) return false
+      else if (this.pendingEmail) return null
+      else if (this.emailTaken) return false
+      else return true
     },
     PasswordInvalid () {
       if (this.password.length < 5) return 'Пароль должен содержать не менее 5 символов'
@@ -135,9 +139,11 @@ export default {
       return 'Имя введено корректно'
     },
     NameState () {
-      if (this.nameTaken) return false
-      else if (this.name === '') return null
-      else return fur.regex.name.test(this.name)
+      if (this.name === '') return null
+      else if (!fur.regex.name.test(this.name)) return false
+      else if (this.pendingName) return null
+      else if (this.nameTaken) return false
+      else return true
     },
     Invalid () {
       return !(this.EmailState && this.PasswordState && this.RepasswordState && this.NameState && this.terms)
@@ -155,7 +161,9 @@ export default {
       showPassword: false,
       success: false,
       emailCheckCancelToken: undefined,
-      nameCheckCancelToken: undefined
+      nameCheckCancelToken: undefined,
+      pendingEmail: false,
+      pendingName: false
     }
   }
 }

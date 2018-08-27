@@ -14,6 +14,14 @@
       </div>
       <div class="flex_filler"></div>
     </div>
+    <div class="panel holder">
+      <router-view></router-view>
+    </div>
+    <div class="modals holder">
+      <b-modal hide-footer size="lg" id="rules" title="Правила сообщества">
+        <p>Очень много текста.</p>
+      </b-modal>
+    </div>
     <div class="menu noselect" :opened="showMenu">
       <div v-if="logiedIn">
         <div class="item profile" @click="OpenProfile">
@@ -32,7 +40,7 @@
           <div><font-awesome-icon icon="user" /></div>
           <div>Мои друзья</div>
         </div>
-        <div class="item">
+        <div class="item" @click="OpenPictures">
           <div><font-awesome-icon icon="images" /></div>
           <div>Мои картинки</div>
         </div>
@@ -72,14 +80,6 @@
         <img src="./assets/pictures/logo.png" title="Vue.js"/>
       </div>
     </div>
-    <div class="panel holder">
-      <router-view></router-view>
-    </div>
-    <div class="modals holder">
-      <b-modal hide-footer size="lg" id="rules" title="Правила сообщества">
-        <p>Очень много текста.</p>
-      </b-modal>
-    </div>
   </div>
 </template>
 
@@ -110,7 +110,10 @@ export default {
       axios.post('api/search', {tags: this.$refs.search_pattern.value.split(' ')})
     },
     OpenProfile () {
-      this.$router.push(`/user/${this.user.id}`)
+      this.$router.push(`/user/${this.$store.state.id}`)
+    },
+    OpenPictures () {
+      this.$router.push(`/pictures/${this.$store.state.id}`)
     },
     SignIn () {
       this.SignInWith(this.login.login, this.login.password)
@@ -122,8 +125,7 @@ export default {
           vue.logiedIn = true
           vue.user.token = response.data.data.token
           vue.user.name = response.data.data.name
-          vue.user.id = response.data.data.id
-          fur.cookie.Set('token', response.data.data.token, 60 * 30)
+          vue.$store.commit('signin', response.data.data.id, response.data.data.token)
           fur.cookie.Set('login', fur.crypt.en(login, 'super-secret-dragon'))
           fur.cookie.Set('password', fur.crypt.en(password, 'super-secret-dragon'))
         }
@@ -131,7 +133,6 @@ export default {
     },
     SignOut () {
       this.logiedIn = false
-      fur.cookie.Remove('token')
       fur.cookie.Remove('login')
       fur.cookie.Remove('password')
     }
@@ -154,7 +155,6 @@ export default {
       },
       user: {
         name: 'Аноним',
-        id: 0,
         token: null
       },
       logiedIn: false,
@@ -171,6 +171,10 @@ export default {
     --color-additional: #D6D6B1;
     --color-D: #494331;
     --color-E: #878472;
+    --splitter-top: 1px solid rgba(255,255,255,0.1);
+    --splitter-right: 1px solid rgba(0,0,0,0.1);
+    --splitter-bottom: 1px solid rgba(0,0,0,0.1);
+    --splitter-left: 1px solid rgba(255,255,255,0.1);
   }
   body {
     margin: 0;
@@ -178,15 +182,6 @@ export default {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background: var(--color-E);
-  }
-  ul {
-    display: flex;
-    list-style-type: none;
-    flex-direction: column;
-    margin: 0;
-  }
-  li {
-    flex-grow: 1;
   }
   .noselect {
     -webkit-touch-callout: none; /* iOS Safari */
@@ -292,10 +287,10 @@ export default {
     background: rgba(0,0,0,0.25);
   }
   .menu .item:not(.footer) {
-    border-bottom: 1px solid rgba(0,0,0,0.1);
+    border-bottom: var(--splitter-bottom);
   }
   .menu .item:not(.profile) {
-    border-top: 1px solid rgba(255,255,255,0.1);
+    border-top: var(--splitter-top);
   }
   .menu .item:not(.footer) > div:first-child {
     width: 50px;
@@ -361,9 +356,12 @@ export default {
     background: white;
   }
   .panel > div[wide] {
-    width: 100%;
+    width: calc(100% - 40px);
   }
   .modals {
     display: none;
+  }
+  .custom-file-input:lang(ru)~.custom-file-label::after {
+    content: "Выбрать";
   }
 </style>

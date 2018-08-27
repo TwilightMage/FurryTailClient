@@ -1,34 +1,34 @@
 <template>
-  <div class="separator">
-    <div></div>
-    <div v-if="title != ''">{{title}}</div>
-    <div></div>
-  </div>
+  <div class="separator" :vertical="vertical" :horizontal="horizontal"></div>
 </template>
 
 <script>
 export default {
   name: 'separator',
+  created () {
+    if (this.vertical) this.horizontal = false
+    else this.vertical = false
+  },
   props: {
-    title: {
-      type: String,
-      default: ''
+    vertical: {
+      type: Boolean,
+      default: false
+    },
+    horizontal: {
+      type: Boolean,
+      default: true
     }
   }
 }
 </script>
 
 <style scoped>
-  .separator {
-    display: flex;
-    flex-direction: row;
+  .separator[horizontal] {
+    border-left: var(--splitter-left);
+    border-right: var(--splitter-right);
   }
-  .separator > *:first-child, .separator > *:last-child {
-    height: 0;
-    flex-grow: 1;
-    border: 2px inset darkgrey;
-  }
-  .separator > *:not(:first-child):not(:last-child) {
-    margin: 0 5px;
+  .separator[vertical] {
+    border-top: var(--splitter-top);
+    border-bottom: var(--splitter-bottom);
   }
 </style>

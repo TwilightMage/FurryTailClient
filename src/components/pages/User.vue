@@ -10,7 +10,7 @@
           <div class="description">{{user.description}}</div>
           <div class="user-detailed">
             <table>
-              <tr v-if="gender != null">
+              <tr v-if="user.gender != null">
                 <td>Пол:</td>
                 <td>{{GenderString}}</td>
               </tr>
@@ -26,18 +26,19 @@
 
 <script>
 import axios from 'axios'
-import fur from '../../fur'
+import {mapState} from 'vuex'
 
 export default {
   name: 'User',
   computed: {
+    ...mapState(['id']),
     GenderString () {
-      return this.gender ? 'мужской' : 'женский'
+      return this.gender ? 'женский' : 'мужской'
     }
   },
   created () {
     var vue = this
-    axios.post('api/user', {id: this.$route.params.id, token: fur.cookie.Get('token', null)}).then(function (response) {
+    axios.post('api/user', {id: this.id, token: this.$store.state.token}).then(function (response) {
       if (response.data.success) {
         vue.user.name = response.data.data.name
         vue.user.description = response.data.data.description

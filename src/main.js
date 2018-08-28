@@ -24,17 +24,14 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
   state: {
-    id: 0,
-    token: null
+    id: 0
   },
   mutations: {
-    signin (state, id, token) {
+    signin (state, id) {
       state.id = id
-      state.token = token
     },
     signout (state) {
       state.id = 0
-      state.token = null
     }
   }
 })

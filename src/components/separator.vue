@@ -1,33 +1,28 @@
 <template>
-  <div class="separator" :vertical="vertical" :horizontal="horizontal"></div>
+  <div class="separator" :type="type"></div>
 </template>
 
 <script>
 export default {
   name: 'separator',
   created () {
-    if (this.vertical) this.horizontal = false
-    else this.vertical = false
+    if (this.type !== 'vertical' && this.type !== 'horizontal') this.type = 'vertical'
   },
   props: {
-    vertical: {
-      type: Boolean,
-      default: false
-    },
-    horizontal: {
-      type: Boolean,
-      default: true
+    type: {
+      type: String,
+      default: 'vertical'
     }
   }
 }
 </script>
 
 <style scoped>
-  .separator[horizontal] {
+  .separator[type=horizontal] {
     border-left: var(--splitter-left);
     border-right: var(--splitter-right);
   }
-  .separator[vertical] {
+  .separator[type=vertical] {
     border-top: var(--splitter-top);
     border-bottom: var(--splitter-bottom);
   }

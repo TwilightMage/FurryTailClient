@@ -26,7 +26,7 @@
       <div v-if="logiedIn">
         <div class="item profile" @click="OpenProfile">
           <img src="./assets/pictures/logo.png" class="avatar"/>
-          <div class="nickname">{{user.name}}</div>
+          <div class="nickname">{{username}}</div>
         </div>
         <div class="item">
           <div><font-awesome-icon icon="newspaper" /></div>
@@ -123,29 +123,20 @@ export default {
       axios.post('api/signin', {login: login, password: password}).then(function (response) {
         if (response.data.success) {
           vue.logiedIn = true
-          vue.user.token = response.data.data.token
-          vue.user.name = response.data.data.name
-          vue.$store.commit('signin', response.data.data.id, response.data.data.token)
-          fur.cookie.Set('login', fur.crypt.en(login, 'super-secret-dragon'))
-          fur.cookie.Set('password', fur.crypt.en(password, 'super-secret-dragon'))
+          vue.username = response.data.data.name
+          vue.$store.commit('signin', response.data.data.id)
         }
       })
     },
     SignOut () {
       this.logiedIn = false
+      this.$store.commit('signout')
       fur.cookie.Remove('login')
       fur.cookie.Remove('password')
     }
   },
   created () {
-    this.token = fur.cookie.Get('token', null)
-    var login = fur.cookie.Get('login', null)
-    var password = fur.cookie.Get('password', null)
-    if (login && password) {
-      login = fur.crypt.de(login, 'super-secret-dragon')
-      password = fur.crypt.de(password, 'super-secret-dragon')
-      this.SignInWith(login, password)
-    }
+    if (fur.cookie.Get('login', null) && fur.cookie.Get('password', null)) this.SignInWith(null, null)
   },
   data () {
     return {
@@ -153,10 +144,7 @@ export default {
         login: '',
         password: ''
       },
-      user: {
-        name: 'Аноним',
-        token: null
-      },
+      username: 'Аноним',
       logiedIn: false,
       showMenu: false
     }

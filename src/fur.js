@@ -23,18 +23,6 @@ module.exports = {
       if (results) return decodeURIComponent(results[2])
       else return defaultValue
     },
-    Extract (name) {
-      var results = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)')
-
-      console.debug(results)
-      if (results) {
-        return {
-          name: name
-        }
-      } else {
-        return null
-      }
-    },
     Set (name, value, lifetime, path, domain, secure) {
       var cookieString = name + '=' + encodeURIComponent(value)
 

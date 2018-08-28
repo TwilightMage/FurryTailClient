@@ -38,7 +38,7 @@ export default {
   },
   created () {
     var vue = this
-    axios.post('api/user', {id: this.id, token: this.$store.state.token}).then(function (response) {
+    axios.post('api/user', {id: this.$route.params.id, token: this.$store.state.token}).then(function (response) {
       if (response.data.success) {
         vue.user.name = response.data.data.name
         vue.user.description = response.data.data.description

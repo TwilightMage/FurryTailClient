@@ -2,8 +2,19 @@
   <div wide class="pan">
     <div class="galery">
       <b-breadcrumb :items="path"></b-breadcrumb>
+      <div v-if="page === 0 && id > 0 || page === 1" class="dirs">
+        <div v-if="page === 0 && id > 0" @click="OpenMyPictures">Мои изображения</div>
+        <div v-if="page === 1 && id > 0" v-for="album in albums" v-bind:key="album.name" @click="OpenAlbum(album)">{{album.name}}</div>
+        <div v-if="page === 1 && id > 0" @click="AddAlbum" outlined>Добавить альбом</div>
+        <h5 v-if="albums.length === 0 && !me" class="placeholder">{{albumPlaceholder}}</h5>
+      </div>
+      <separator v-if="page === 0 && id > 0 || page === 1" class="separator-galery" type="vertical"></separator>
+      <div class="pictures">
+        <div v-for="picture in pictures" v-bind:key="picture.id">{{picture.name}}</div>
+        <h5 v-if="pictures.length === 0" class="placeholder">{{picturePlaceholder}}</h5>
+      </div>
     </div>
-    <separator class="separator-main" v-if="me" horizontal></separator>
+    <separator class="separator-main" v-if="me" type="horizontal"></separator>
     <div v-if="id > 0" v-show="me" class="upload">
       <h4>Загрузить изображения</h4>
       <div class="files">
@@ -24,7 +35,7 @@ import {mapState} from 'vuex'
 export default {
   name: 'Pictures',
   computed: {
-    ...mapState(['id']),
+    ...mapState(['id', 'token']),
     me () {
       return this.$route.params.user === String(this.id)
     },
@@ -35,17 +46,46 @@ export default {
       }]
       if (this.userName) {
         result.push({
-          text: this.userName,
+          text: this.me ? 'Мои изображения' : `Изображения ${this.userName}`,
           to: `/pictures/${this.$route.params.user}`
         })
       }
-      if (this.collectionName) {
+      if (this.albumName) {
         result.push({
-          text: this.collectionName,
-          to: `/pictures/${this.$route.params.user}/${this.$route.params.collection}`
+          text: this.albumName,
+          to: `/pictures/${this.$route.params.user}/${this.$route.params.album}`
         })
       }
       return result
+    },
+    page () {
+      if (this.$route.params.picture) return 3
+      if (this.$route.params.album) return 2
+      if (this.$route.params.user) return 1
+      return 0
+    },
+    albumPlaceholder () {
+      switch (this.page) {
+        case 0:
+          return ''
+        case 1:
+          return `Список альбомов ${this.userName} пуст`
+        default:
+          return ''
+      }
+    },
+    picturePlaceholder () {
+      switch (this.page) {
+        case 0:
+          return 'Никто пока не загрузил ни одного изображения'
+        case 1:
+          if (this.me) return 'Вы пока не загрузили ни одного изображения'
+          else return `${this.userName} пока не загрузил ни одного изображения`
+        case 2:
+          return 'Этот альбом пуст'
+        default:
+          return ''
+      }
     },
     AllLoaded () {
       for (var i = 0; i < this.upload.files.length; i++) {
@@ -65,7 +105,7 @@ export default {
   methods: {
     Fetch () {
       this.FetchUserName()
-      this.FetchCollectionName()
+      this.FetchAlbumName()
       this.FetchFileName()
     },
     FetchUserName () {
@@ -82,7 +122,7 @@ export default {
             })
           }).then(function (response) {
             if (response.data.success) {
-              vue.userName = 'Изображения ' + response.data.data.name
+              vue.userName = response.data.data.name
             }
           }).catch(function () {
             this.userName = '<Ошибка загрузки>'
@@ -92,11 +132,20 @@ export default {
         this.userName = null
       }
     },
-    FetchCollectionName () {
+    FetchAlbumName () {
       // var vue = this
     },
     FetchFileName () {
       // var vue = this
+    },
+    OpenMyPictures () {
+      this.$router.push(`/pictures/${this.id}`)
+    },
+    AddAlbum () {
+
+    },
+    OpenAlbum (album) {
+
     },
     PutFiles () {
       this.upload.files = this.upload.files.concat(this.upload.browse)
@@ -118,6 +167,17 @@ export default {
       file.loaded = true
     },
     Upload () {
+      var files = []
+      for (var i = 0; i < this.upload.files.length; i++) {
+        files.push({tags: this.upload.files[i].tags, src: this.upload.files[i].src, author: this.upload.files[i].author})
+      }
+      axios.post('api/uploadpictures', {files: files}, {
+        onUploadProgress (progress) {
+          console.debug(progress)
+        }
+      }).then(function (response) {
+
+      })
     }
   },
   created () {
@@ -126,11 +186,13 @@ export default {
   data () {
     return {
       userName: null,
-      collectionName: null,
+      albumName: null,
       fileName: null,
       userNameCancelToken: null,
-      collectionNameCancelToken: null,
+      albumNameCancelToken: null,
       fileNameCancelToken: null,
+      albums: [],
+      pictures: [],
       upload: {
         browse: [],
         files: []
@@ -171,5 +233,49 @@ export default {
   }
   .separator-main {
     margin-left: 10px;
+  }
+  .galery {
+    display: flex;
+    flex-direction: column;
+  }
+  .dirs > div {
+    width: 200px;
+    background: grey;
+    border-radius: 0.25rem;
+    height: 40px;
+    float: left;
+    margin: 0 10px 10px 0;
+    line-height: 40px;
+    text-align: center;
+    color: whitesmoke;
+    cursor: pointer;
+  }
+  .dirs > div:hover {
+    background: darkgrey;
+  }
+  .dirs > div[outlined] {
+    color: grey;
+    line-height: 30px;
+    font-weight: bold;
+    border: 5px dashed grey;
+    background: transparent;
+  }
+  .dirs > div[outlined]:hover {
+    border-color: darkgrey;
+    color: darkgrey;
+  }
+  .separator-galery {
+    margin-bottom: 10px;
+  }
+  .pictures {
+    flex-grow: 1;
+  }
+  .placeholder {
+    opacity: 0.5;
+    line-height: 40px;
+    font-style: italic;
+    color: grey;
+    font-weight: bold;
+    margin-bottom: 10px;
   }
 </style>
